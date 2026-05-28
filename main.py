@@ -4,8 +4,6 @@ from fastapi.middleware.cors import CORSMiddleware
 import shutil
 import os
 
-from pdf2image import convert_from_path
-
 from ocr_engine import extract_text
 
 from extractor import (
@@ -30,8 +28,9 @@ os.makedirs("temp", exist_ok=True)
 
 @app.get("/")
 def home():
+
     return {
-        "message": "Invoice OCR API Running"
+        "message": "EasyOCR Invoice API Running"
     }
 
 
@@ -40,37 +39,33 @@ async def scan_invoice(
     file: UploadFile = File(...)
 ):
 
-    file_path = f"temp/{file.filename}"
+    try:
 
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+        file_path = f"temp/{file.filename}"
 
-    extension = file.filename.split(".")[-1].lower()
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
 
-    image_path = file_path
+        text = extract_text(file_path)
 
-    if extension == "pdf":
+        vendor_name = extract_vendor_name(text)
 
-        pages = convert_from_path(file_path)
+        invoice_number = extract_invoice_number(text)
 
-        image_path = "temp/converted_page.jpg"
+        gst_amount = extract_gst_amount(text)
 
-        pages[0].save(image_path, "JPEG")
+        total_amount = extract_total_amount(text)
 
-    text = extract_text(image_path)
+        return {
+            "vendor_name": vendor_name,
+            "invoice_number": invoice_number,
+            "gst_amount": gst_amount,
+            "total_amount": total_amount,
+            "raw_text": text
+        }
 
-    vendor_name = extract_vendor_name(text)
+    except Exception as e:
 
-    invoice_number = extract_invoice_number(text)
-
-    gst_amount = extract_gst_amount(text)
-
-    total_amount = extract_total_amount(text)
-
-    return {
-        "vendor_name": vendor_name,
-        "invoice_number": invoice_number,
-        "gst_amount": gst_amount,
-        "total_amount": total_amount,
-        "raw_text": text
-    }
+        return {
+            "error": str(e)
+        }
