@@ -1,30 +1,34 @@
-from paddleocr import PaddleOCR
+import easyocr
 
-ocr = None
+reader = None
 
-def get_ocr():
-    global ocr
 
-    if ocr is None:
-        ocr = PaddleOCR(
-            use_angle_cls=False,
-            lang='en',
-            use_gpu=False,
-            show_log=False
+def get_reader():
+
+    global reader
+
+    if reader is None:
+
+        reader = easyocr.Reader(
+            ['en'],
+            gpu=False
         )
 
-    return ocr
+    return reader
 
 
 def extract_text(image_path):
 
-    ocr_instance = get_ocr()
+    reader_instance = get_reader()
 
-    result = ocr_instance.ocr(image_path)
+    results = reader_instance.readtext(image_path)
 
     extracted_text = ""
 
-    for line in result[0]:
-        extracted_text += line[1][0] + " "
+    for result in results:
+
+        text = result[1]
+
+        extracted_text += text + " "
 
     return extracted_text
