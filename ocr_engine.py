@@ -1,8 +1,10 @@
 from paddleocr import PaddleOCR
 
 ocr = PaddleOCR(
-    use_angle_cls=True,
-    lang='en'
+    use_angle_cls=False,
+    lang='en',
+    use_gpu=False,
+    show_log=False
 )
 
 def extract_text(image_path):
