@@ -1,19 +1,30 @@
 from paddleocr import PaddleOCR
 
-ocr = PaddleOCR(
-    use_angle_cls=False,
-    lang='en',
-    use_gpu=False,
-    show_log=False
-)
+ocr = None
+
+def get_ocr():
+    global ocr
+
+    if ocr is None:
+        ocr = PaddleOCR(
+            use_angle_cls=False,
+            lang='en',
+            use_gpu=False,
+            show_log=False
+        )
+
+    return ocr
+
 
 def extract_text(image_path):
 
-    result = ocr.ocr(image_path, cls=True)
+    ocr_instance = get_ocr()
 
-    text = ""
+    result = ocr_instance.ocr(image_path)
+
+    extracted_text = ""
 
     for line in result[0]:
-        text += line[1][0] + "\n"
+        extracted_text += line[1][0] + " "
 
-    return text
+    return extracted_text
